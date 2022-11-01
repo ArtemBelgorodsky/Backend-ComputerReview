@@ -1,49 +1,48 @@
-﻿using Computer_Backend.Interfaces;
+﻿using Computer_Backend.Data;
+using Computer_Backend.Interfaces;
 using Computer_Backend.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Computer_Backend.Services
 {
     public class ArticleService : IArticleService
     {
-        private static List<Article> _articles = new List<Article>()
+        private static ShopDBContext _dbContext;
+
+        public ArticleService(ShopDBContext dbContext)
         {
-            new Article() { Id = 0, Name = "Entity", Description = "None" },
-            new Article() { Id = 1, Name = "JS", Description = "None" },
-            new Article() { Id = 2, Name = "TS", Description = "None" },
-            new Article() { Id = 3, Name = "C#" },
-        };
+            _dbContext = dbContext;
+        }
         public Article AddArticle(Article article)
         {
-            _articles.Add(article);
+            _dbContext.Articles.Add(article);
+            _dbContext.SaveChanges();
             return article;
         }
 
         public void DeleteArticle(int id)
         {
-            _articles.RemoveAll(x => x.Id == id);
+            _dbContext.Articles.Remove(_dbContext.Articles.Find(id));
+            _dbContext.SaveChanges();
         }
 
         public Article GetArticleById(int id)
         {
-            return _articles.Find(x => x.Id == id);
+            return _dbContext.Articles.SingleOrDefault(x => x.Id == id);
         }
 
         public List<Article> GetArticles()
         {
-            return _articles;
+            return _dbContext.Articles.AsNoTracking().ToList();
         }
 
         public Article UpdateArticle(int articleId, Article article)
         {
-            int ind = _articles.FindIndex(x => x.Id == articleId);
-            if (ind == -1)
-            {
-                return article;
-            }
-            var prev = _articles[ind];
-            _articles[ind] = article;
-            return prev;
+            _dbContext.Articles.Update(article);
+            _dbContext.SaveChanges();
+            return article;
         }
     }
 }
